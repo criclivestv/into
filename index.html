@@ -85,8 +85,18 @@ button {
   <h1>🎬 Shaka Player Generator</h1>
 
   <div class="form-group">
-    <label>Video URL:</label>
-    <input type="text" id="videoUrl" placeholder="Enter .mpd or .m3u8 link">
+    <label>Video URL (.mpd / .m3u8):</label>
+    <input type="text" id="videoUrl" placeholder="Enter stream link">
+  </div>
+
+  <!-- DRM -->
+  <div class="form-group">
+    <label>DRM Key ID:</label>
+    <input type="text" id="keyId" placeholder="Optional Key ID">
+  </div>
+  <div class="form-group">
+    <label>DRM Key Value:</label>
+    <input type="text" id="keyValue" placeholder="Optional Key">
   </div>
 
   <!-- Logo Controls -->
@@ -161,7 +171,11 @@ const logoUrlEl = document.getElementById('logoUrl');
 const previewLogo = document.getElementById('previewLogo');
 const wmTextEl = document.getElementById('wmText');
 const previewText = document.getElementById('previewText');
+const videoUrlEl = document.getElementById('videoUrl');
+const keyIdEl = document.getElementById('keyId');
+const keyValueEl = document.getElementById('keyValue');
 
+// Live preview
 logoUrlEl.addEventListener('input',()=>{
   const val = logoUrlEl.value.trim();
   if(val){ previewLogo.src = val; previewLogo.style.display='block'; }
@@ -173,12 +187,29 @@ wmTextEl.addEventListener('input',()=>{
   else previewText.style.display='none';
 });
 
+// Auto-parse KeyID & Key if full DRM URL is pasted
+videoUrlEl.addEventListener('input',()=>{
+  const link = videoUrlEl.value;
+  if(link.includes('drmLicense=')){
+    try{
+      const match = link.split('drmLicense=')[1];
+      const [kid,key] = match.split(':');
+      if(kid && key){
+        keyIdEl.value = kid;
+        keyValueEl.value = key;
+      }
+    }catch(e){}
+  }
+});
+
 function generatePlayer(){
-  const videoUrl = document.getElementById('videoUrl').value.trim();
+  const videoUrl = videoUrlEl.value.trim();
   if(!videoUrl){ alert('Please enter a Video URL'); return; }
 
   const params = new URLSearchParams({
     url: videoUrl,
+    keyId: keyIdEl.value.trim(),
+    keyValue: keyValueEl.value.trim(),
     logoOn: document.getElementById('logoOn').checked ? 1:0,
     logo: document.getElementById('logoUrl').value.trim(),
     logoPos: document.getElementById('logoPos').value,
@@ -193,10 +224,8 @@ function generatePlayer(){
 }
 
 function resetForm(){
-  document.querySelector('form')?.reset();
-  document.getElementById('videoUrl').value='';
-  document.getElementById('logoUrl').value='';
-  document.getElementById('wmText').value='';
+  document.querySelectorAll('input[type=text],input[type=number]').forEach(i=>i.value='');
+  document.querySelectorAll('input[type=checkbox]').forEach(i=>i.checked=false);
   previewLogo.style.display='none';
   previewText.style.display='none';
   alert('Form reset successfully!');
@@ -204,4 +233,4 @@ function resetForm(){
 </script>
 
 </body>
-      </html>
+</html>
