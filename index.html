@@ -3,63 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shaka Player DASH — Full Feature</title>
-
-<!-- Shaka Player UI CSS -->
-<link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css">
-
+<title>Shaka Player DASH • Main Page</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css">
 <style>
-:root {
-    --accent: #1a73e8;
-    --bg: #000;
-    --panel-bg: rgba(20,20,20,0.95);
-    --text: #fff;
-}
-html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: Inter, Arial, sans-serif;
-}
-.container {
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 14px;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
-}
-h1 { margin:0 0 8px 0; font-size: 22px;}
-.panel {
-    background: var(--panel-bg);
-    padding: 12px;
-    border-radius: 8px;
-}
-.controls { display: flex; flex-wrap: wrap; gap:8px; align-items:center;}
-input[type="text"], input[type="url"] {
-    padding:6px 8px; border-radius:6px; border:1px solid #333;
-    background:#111; color:var(--text); min-width:260px;
-}
-button { background:var(--accent); color:#fff; border:0; padding:6px 10px; border-radius:6px; cursor:pointer;}
-button.secondary { background:#333; }
-.small { font-size:13px; color:#ccc; }
-.player-wrap { position:relative; border-radius:6px; overflow:hidden; background:#000; }
-#player-container { width:100%; aspect-ratio:16/9; position:relative; background:#000; }
-video.shaka-video { width:100%; height:100%; object-fit:contain; background:#000; display:block; }
-.shaka-controls-container { z-index:9999 !important; background:transparent !important; }
-.overlay-logo, .overlay-text { position:absolute; pointer-events:none; z-index:50; color:#fff; font-weight:600; display:none; }
-.overlay-logo { mix-blend-mode:normal; }
-.overlay-text { font-size:18px; opacity:0.75; }
-textarea { width:100%; min-height:60px; padding:8px; border-radius:6px; background:#111; border:1px solid #333; color:var(--text); }
-.row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-label { font-size:13px; color:#ddd; margin-right:6px; }
-.right { margin-left:auto; }
+:root{--accent:#1a73e8;--bg:#000;--panel-bg:rgba(20,20,20,0.95);--text:#fff;}
+body,html{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif;}
+.container{max-width:1200px;margin:20px auto;padding:14px;display:grid;gap:16px;}
+.panel{background:var(--panel-bg);padding:12px;border-radius:8px;}
+h1{margin:0 0 8px 0;font-size:22px;}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+input,select{padding:6px 8px;border-radius:6px;border:1px solid #333;background:#111;color:var(--text);min-width:200px;}
+button{background:var(--accent);color:#fff;border:0;padding:6px 10px;border-radius:6px;cursor:pointer;}
+button.secondary{background:#333;}
+.small{font-size:13px;color:#ccc;}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+label{font-size:13px;color:#ddd;margin-right:6px;}
+.right{margin-left:auto;}
+textarea{width:100%;min-height:60px;padding:8px;border-radius:6px;background:#111;border:1px solid #333;color:var(--text);}
 </style>
 </head>
 <body>
-
 <div class="container">
   <div class="panel">
     <h1>Live DASH Player • Share & Embed</h1>
@@ -70,8 +33,7 @@ label { font-size:13px; color:#ddd; margin-right:6px; }
       <button id="use-sample" class="secondary">Use Sample</button>
     </div>
 
-    <hr style="border-color:#222; margin:10px 0;">
-
+    <hr style="border-color:#222;margin:10px 0;">
     <!-- Logo / Watermark -->
     <div class="small">Logo / Watermark Settings</div>
     <div class="row">
@@ -100,9 +62,7 @@ label { font-size:13px; color:#ddd; margin-right:6px; }
       <button id="clear-wm" class="secondary">Clear</button>
     </div>
 
-    <hr style="border-color:#222; margin:10px 0;">
-
-    <!-- Share / Embed -->
+    <hr style="border-color:#222;margin:10px 0;">
     <div class="small">Share / Embed</div>
     <div class="row">
       <button id="gen-link">Generate Link</button>
@@ -111,176 +71,149 @@ label { font-size:13px; color:#ddd; margin-right:6px; }
     </div>
     <div style="height:8px"></div>
     <textarea id="output" placeholder="Share link or embed code will appear here"></textarea>
-
   </div>
 
-  <!-- Player -->
-  <div class="player-wrap panel">
-    <div id="player-container">
-      <video id="video" autoplay playsinline class="shaka-video"></video>
-      <div class="shaka-controls-container"></div>
-      <img id="overlayLogo" class="overlay-logo" alt="logo">
-      <div id="overlayText" class="overlay-text"></div>
-    </div>
-    <div class="small" style="margin-top:6px;">Tip: Use query params <code>?url=URL&logo=LOGO_URL</code></div>
-    <div class="small" style="margin-top:8px;">© 2025 Cric Lives TV</div>
+  <!-- Player Preview -->
+  <div class="panel" style="position:relative;">
+    <video id="video" autoplay playsinline controls style="width:100%;height:360px;background:#000"></video>
+    <img id="overlayLogo" style="position:absolute;top:10px;left:10px;width:120px;opacity:0.85;display:none;pointer-events:none;">
+    <div id="overlayText" style="position:absolute;top:10px;left:10px;color:#fff;font-size:18px;font-weight:600;display:none;pointer-events:none;"></div>
   </div>
-
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/shaka-player.ui.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', async()=>{
+// Shaka Player Setup
+document.addEventListener('DOMContentLoaded', ()=>{
+  const video=document.getElementById('video');
+  const overlayLogo=document.getElementById('overlayLogo');
+  const overlayText=document.getElementById('overlayText');
 
-const video = document.getElementById('video');
-const container = document.getElementById('player-container');
-const inputUrl = document.getElementById('input-url');
-const loadBtn = document.getElementById('load-btn');
-const useSample = document.getElementById('use-sample');
-const genLink = document.getElementById('gen-link');
-const copyLink = document.getElementById('copy-link');
-const genEmbed = document.getElementById('gen-embed');
-const output = document.getElementById('output');
+  const inputUrl=document.getElementById('input-url');
+  const loadBtn=document.getElementById('load-btn');
+  const useSample=document.getElementById('use-sample');
 
-const logoUrlInp = document.getElementById('logo-url');
-const logoPos = document.getElementById('logo-pos');
-const logoSize = document.getElementById('logo-size');
-const logoOpacity = document.getElementById('logo-opacity');
-const logoOpacityVal = document.getElementById('logo-opacity-val');
-const logoOnOff = document.getElementById('logo-onoff');
-const applyLogo = document.getElementById('apply-logo');
+  const logoUrlInp=document.getElementById('logo-url');
+  const logoPos=document.getElementById('logo-pos');
+  const logoSize=document.getElementById('logo-size');
+  const logoOpacity=document.getElementById('logo-opacity');
+  const logoOpacityVal=document.getElementById('logo-opacity-val');
+  const logoOnOff=document.getElementById('logo-onoff');
 
-const wmText = document.getElementById('wm-text');
-const wmOnOff = document.getElementById('wm-onoff');
-const applyWm = document.getElementById('apply-wm');
-const clearWm = document.getElementById('clear-wm');
+  const wmText=document.getElementById('wm-text');
+  const wmOnOff=document.getElementById('wm-onoff');
+  const applyLogo=document.getElementById('apply-logo');
+  const applyWm=document.getElementById('apply-wm');
+  const clearWm=document.getElementById('clear-wm');
 
-const overlayLogo = document.getElementById('overlayLogo');
-const overlayText = document.getElementById('overlayText');
+  const genLink=document.getElementById('gen-link');
+  const copyLink=document.getElementById('copy-link');
+  const genEmbed=document.getElementById('gen-embed');
+  const output=document.getElementById('output');
 
-// Initialize Shaka Player
-const player = new shaka.Player(video);
-player.addEventListener('error', e=>console.error('Shaka error', e.detail||e));
+  const player=new shaka.Player(video);
+  player.addEventListener('error',e=>console.error(e));
 
-const ui = new shaka.ui.Overlay(player, container, video);
-ui.configure({
-    controlPanelElements:[
-        'play_pause','mute','volume','spacer','settings','quality','playback_rate','picture_in_picture','fullscreen'
-    ],settingsMenuElements:[
-        'quality','playback_rate' // captions বাদ
-    ]
-});
-player.configure({ abr:{ enabled:true } });
+  async function loadStream(url){
+    try{
+      await player.load(url);
+      console.log('Loaded:',url);
+      placeOverlay();
+      output.value='';
+    }catch(e){console.error('Error loading stream',e);}
+  }
 
-// Overlay helper
-function placeOverlay(){
+  function placeOverlay(){
     // Logo
     if(logoOnOff.checked && logoUrlInp.value.trim()){
-        overlayLogo.src = logoUrlInp.value.trim();
-        overlayLogo.style.display = 'block';
-        overlayLogo.style.opacity = logoOpacity.value/100;
-        overlayLogo.style.width = (logoSize.value||120)+'px';
-        overlayLogo.style.height = 'auto';
-        // Position
-        overlayLogo.style.top=''; overlayLogo.style.left=''; overlayLogo.style.right=''; overlayLogo.style.bottom=''; overlayLogo.style.transform='';
-        switch(logoPos.value){
-            case 'top-left': overlayLogo.style.top='10px'; overlayLogo.style.left='10px'; break;
-            case 'top-right': overlayLogo.style.top='10px'; overlayLogo.style.right='10px'; break;
-            case 'bottom-left': overlayLogo.style.bottom='12px'; overlayLogo.style.left='10px'; break;
-            case 'bottom-right': overlayLogo.style.bottom='12px'; overlayLogo.style.right='12px'; break;
-            case 'center': overlayLogo.style.top='50%'; overlayLogo.style.left='50%'; overlayLogo.style.transform='translate(-50%,-50%)'; break;
-        }
-    } else {
-        overlayLogo.style.display='none';
-    }
+      overlayLogo.src=logoUrlInp.value.trim();
+      overlayLogo.style.display='block';
+      overlayLogo.style.opacity=logoOpacity.value/100;
+      overlayLogo.style.width=(logoSize.value||120)+'px';
+      overlayLogo.style.height='auto';
+      overlayLogo.style.top='';overlayLogo.style.left='';overlayLogo.style.right='';overlayLogo.style.bottom='';overlayLogo.style.transform='';
+      switch(logoPos.value){
+        case'top-left':overlayLogo.style.top='10px';overlayLogo.style.left='10px';break;
+        case'top-right':overlayLogo.style.top='10px';overlayLogo.style.right='10px';break;
+        case'bottom-left':overlayLogo.style.bottom='12px';overlayLogo.style.left='10px';break;
+        case'bottom-right':overlayLogo.style.bottom='12px';overlayLogo.style.right='12px';break;
+        case'center':overlayLogo.style.top='50%';overlayLogo.style.left='50%';overlayLogo.style.transform='translate(-50%,-50%)';break;
+      }
+    }else{overlayLogo.style.display='none';}
     // Watermark
     if(wmOnOff.checked && wmText.value.trim()){
-        overlayText.textContent = wmText.value.trim();
-        overlayText.style.display='block';
-        overlayText.style.top='10px'; overlayText.style.left='10px';
-    } else {
-        overlayText.style.display='none';
-    }
-}
+      overlayText.textContent=wmText.value.trim();
+      overlayText.style.display='block';
+    }else{overlayText.style.display='none';}
+  }
 
-// Event Listeners
-applyLogo.addEventListener('click', placeOverlay);
-applyWm.addEventListener('click', placeOverlay);
-clearWm.addEventListener('click', ()=>{
-    wmText.value='';
-    overlayText.style.display='none';
-    placeOverlay();
-});
-logoOpacity.addEventListener('input', ()=>{ logoOpacityVal.textContent = logoOpacity.value+'%'; placeOverlay(); });
+  loadBtn.addloadBtn.addEventListener('click', () => {
+    const url = inputUrl.value.trim();
+    if (!url) return alert('Paste DASH/MPD URL first');
+    loadStream(url);
+  });
 
-// Load video
-async function loadStream(url){
-    try{
-        await player.load(url);
-        console.log('Loaded:', url);
-        placeOverlay();
-        output.value=''; // clear output
-    }catch(e){
-        console.error('Error loading stream', e);
-        alert('Error loading stream. Check console.');
-    }
-}
-
-loadBtn.addEventListener('click', ()=>{ 
-    const url = inputUrl.value.trim(); 
-    if(!url) return alert('Paste DASH/MPD URL first'); 
-    loadStream(url); 
-});
-useSample.addEventListener('click', ()=>{
-    const sample='https://v4-kun-v13-cdn-02.live.cdn.cgates.lt/live/dash/560502/web.mpd';
-    inputUrl.value=sample;
+  useSample.addEventListener('click', () => {
+    const sample = 'https://v4-kun-v13-cdn-02.live.cdn.cgates.lt/live/dash/560502/web.mpd';
+    inputUrl.value = sample;
     loadStream(sample);
-});
+  });
 
-// Share / Embed
-function buildShareUrl(){
-    const base = location.origin + location.pathname;
+  applyLogo.addEventListener('click', placeOverlay);
+  applyWm.addEventListener('click', placeOverlay);
+  clearWm.addEventListener('click', () => {
+    wmText.value = '';
+    overlayText.style.display = 'none';
+    placeOverlay();
+  });
+
+  logoOpacity.addEventListener('input', () => {
+    logoOpacityVal.textContent = logoOpacity.value + '%';
+    placeOverlay();
+  });
+
+  // Share / Embed buttons
+  function buildShareUrl() {
+    const base = location.origin + location.pathname.replace('index.html','player.html'); // new player page
     const u = new URL(base);
-    const url=inputUrl.value.trim();
-    if(!url) return '';
+    const url = inputUrl.value.trim();
+    if (!url) return '';
     u.searchParams.set('url', url);
-    if(logoUrlInp.value.trim()) u.searchParams.set('logo', logoUrlInp.value.trim());
-    if(logoPos.value) u.searchParams.set('logoPos', logoPos.value);
-    if(logoSize.value.trim()) u.searchParams.set('logoSize', logoSize.value.trim());
-    if(logoOpacity.value) u.searchParams.set('logoOpacity', logoOpacity.value);
-    if(logoOnOff.checked) u.searchParams.set('logoOn', '1'); else u.searchParams.set('logoOn','0');
-    if(wmText.value.trim()) u.searchParams.set('wmText', encodeURIComponent(wmText.value.trim()));
-    if(wmOnOff.checked) u.searchParams.set('wmOn','1'); else u.searchParams.set('wmOn','0');
+    if (logoUrlInp.value.trim()) u.searchParams.set('logo', logoUrlInp.value.trim());
+    if (logoPos.value) u.searchParams.set('logoPos', logoPos.value);
+    if (logoSize.value.trim()) u.searchParams.set('logoSize', logoSize.value.trim());
+    if (logoOpacity.value) u.searchParams.set('logoOpacity', logoOpacity.value);
+    if (logoOnOff.checked) u.searchParams.set('logoOn', '1'); else u.searchParams.set('logoOn','0');
+    if (wmText.value.trim()) u.searchParams.set('wmText', encodeURIComponent(wmText.value.trim()));
+    if (wmOnOff.checked) u.searchParams.set('wmOn','1'); else u.searchParams.set('wmOn','0');
     return u.toString();
-}
+  }
 
-genLink.addEventListener('click', ()=>{
+  genLink.addEventListener('click', () => {
     const link = buildShareUrl();
     if(!link) return alert('Load video first');
     output.value = link;
-});
-copyLink.addEventListener('click', async()=>{
+  });
+
+  copyLink.addEventListener('click', async () => {
     const txt = output.value.trim();
     if(!txt) return alert('Nothing to copy');
-    try{ await navigator.clipboard.writeText(txt); alert('Copied!'); }catch(e){ prompt('Copy manually:', txt);}
-});
-genEmbed.addEventListener('click', ()=>{
+    try {
+      await navigator.clipboard.writeText(txt);
+      alert('Copied!');
+    } catch(e){
+      prompt('Copy manually:', txt);
+    }
+  });
+
+  genEmbed.addEventListener('click', () => {
     const link = buildShareUrl();
     if(!link) return alert('Load video first');
     const iframe = `<iframe src="${link}" width="800" height="450" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
     output.value = iframe;
-});
-
-// Load from query params if present
-const params = new URLSearchParams(location.search);
-if(params.get('url')){ inputUrl.value=params.get('url'); loadStream(params.get('url')); }
-if(params.get('logo')){ logoUrlInp.value=params.get('logo'); if(params.get('logoPos')) logoPos.value=params.get('logoPos'); if(params.get('logoSize')) logoSize.value=params.get('logoSize'); if(params.get('logoOpacity')) logoOpacity.value=params.get('logoOpacity'); if(params.get('logoOn')) logoOnOff.checked=params.get('logoOn')==='1'; }
-if(params.get('wmText')){ wmText.value=decodeURIComponent(params.get('wmText')); }
-if(params.get('wmOn')){ wmOnOff.checked=params.get('wmOn')==='1'; }
-
-placeOverlay();
+  });
 
 }); // DOMContentLoaded
 </script>
 </body>
-      </html>
+</html>
