@@ -11,7 +11,7 @@ body, html {margin:0;padding:0;background:#000;height:100%;width:100%;display:fl
 video.shaka-video {width:100%;height:100%;object-fit:contain;background:#000;}
 .shaka-controls-container {z-index:9999!important;background:transparent!important;}
 .overlay-logo, .overlay-text {position:absolute;z-index:50;pointer-events:none;display:none;color:#fff;font-weight:600;}
-.overlay-text {font-size:18px; font-weight:600;}
+.overlay-text {font-size:18px;}
 </style>
 </head>
 <body>
@@ -24,77 +24,66 @@ video.shaka-video {width:100%;height:100%;object-fit:contain;background:#000;}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/shaka-player.ui.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async()=>{
   const video = document.getElementById('video');
   const container = document.getElementById('player-container');
   const overlayLogo = document.getElementById('overlayLogo');
   const overlayText = document.getElementById('overlayText');
 
-  // Initialize Shaka Player
   const player = new shaka.Player(video);
-  player.addEventListener('error', e => console.error('Shaka error', e.detail || e));
+  player.addEventListener('error', e=>console.error('Shaka error', e.detail||e));
 
   const ui = new shaka.ui.Overlay(player, container, video);
   ui.configure({
-    controlPanelElements: ['play_pause','mute','volume','spacer','settings','quality','playback_rate','picture_in_picture','fullscreen'],
-    settingsMenuElements: ['quality','playback_rate']
+    controlPanelElements:['play_pause','mute','volume','spacer','settings','quality','playback_rate','picture_in_picture','fullscreen'],
+    settingsMenuElements:['quality','playback_rate']
   });
   player.configure({abr:{enabled:true}});
 
-  // Get URL params
   const p = new URLSearchParams(window.location.search);
   const url = p.get('url');
-  const drmOn = p.get('drm') === 'on';
   const keyId = p.get('keyId');
   const keyValue = p.get('keyValue');
-
-  const logoOn = p.get('logoOn') === '1';
+  const logoOn = p.get('logoOn')=='1';
   const logo = p.get('logo');
   const logoPos = p.get('logoPos') || 'top-left';
   const logoSize = p.get('logoSize') || '120';
-  const logoOpacity = p.get('logoOpacity') || '85';
-
-  const wmOn = p.get('wmOn') === '1';
+  const logoOpacity = p.get('logoOpacity') || '80';
+  const wmOn = p.get('wmOn')=='1';
   const wm = p.get('wm');
   const wmPos = p.get('wmPos') || 'bottom-left';
   const wmOpacity = p.get('wmOpacity') || '70';
 
-  // DRM setup
-  if(drmOn && keyId && keyValue){
-    const keyObj = {};
-    keyObj[keyId] = keyValue;
-    player.configure({
-      drm: {
-        clearKeys: keyObj,
-        retryParameters: { maxAttempts: 4, baseDelay: 1000, backoffFactor: 2 }
-      }
-    });
-  }
-
-  // Load video
   if(url){
     try{
+      if(keyId && keyValue){
+        player.configure({
+          drm: {
+            clearKeys: {
+              [keyId]: keyValue
+            }
+          }
+        });
+      }
       await player.load(decodeURIComponent(url));
       console.log('✅ Video loaded');
     }catch(e){
-      console.error('❌ Error loading video', e);
-      alert('Error loading video. Check the console for details.');
+      console.error('❌ Error loading', e);
+      alert('Error loading video. Check console.');
     }
   }
 
-  // Logo overlay
   if(logoOn && logo){
     overlayLogo.src = decodeURIComponent(logo);
-    overlayLogo.style.display = 'block';
+    overlayLogo.style.display='block';
     overlayLogo.style.width = logoSize+'px';
     overlayLogo.style.opacity = logoOpacity/100;
     setPosition(overlayLogo, logoPos);
   }
 
-  // Watermark overlay
   if(wmOn && wm){
     overlayText.textContent = decodeURIComponent(wm);
-    overlayText.style.display = 'block';
+    overlayText.style.display='block';
     overlayText.style.opacity = wmOpacity/100;
     setPosition(overlayText, wmPos);
   }
