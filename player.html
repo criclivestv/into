@@ -6,12 +6,26 @@
 <title>Shaka Player</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css">
 <style>
-body, html {margin:0;padding:0;background:#000;height:100%;width:100%;display:flex;justify-content:center;align-items:center;}
-#player-container {width:100%;max-width:1280px;aspect-ratio:16/9;position:relative;background:#000;}
-video.shaka-video {width:100%;height:100%;object-fit:contain;background:#000;}
-.shaka-controls-container {z-index:9999!important;background:transparent!important;}
-.overlay-logo, .overlay-text {position:absolute;z-index:50;pointer-events:none;display:none;color:#fff;font-weight:600;}
-.overlay-text {font-size:18px;}
+body, html {
+  margin:0; padding:0; background:#000;
+  height:100%; width:100%;
+  display:flex; justify-content:center; align-items:center;
+}
+#player-container {
+  width:100%; max-width:1280px;
+  aspect-ratio:16/9; position:relative; background:#000;
+}
+video.shaka-video {
+  width:100%; height:100%; object-fit:contain; background:#000;
+}
+.shaka-controls-container {
+  z-index:9999!important; background:transparent!important;
+}
+.overlay-logo, .overlay-text {
+  position:absolute; z-index:50; pointer-events:none; display:none;
+  color:#fff; font-weight:600;
+}
+.overlay-text { font-size:18px; }
 </style>
 </head>
 <body>
@@ -35,16 +49,22 @@ document.addEventListener('DOMContentLoaded', async()=>{
 
   const ui = new shaka.ui.Overlay(player, container, video);
   ui.configure({
-    controlPanelElements:['play_pause','mute','volume','spacer','settings','quality','playback_rate','picture_in_picture','fullscreen'],
-    settingsMenuElements:['quality','playback_rate']
+    controlPanelElements: [
+      'play_pause','mute','volume','spacer',
+      'settings','quality',
+      'picture_in_picture','fullscreen'
+    ],
+    settingsMenuElements: [
+      'quality'
+    ]
   });
-  player.configure({abr:{enabled:true}});
+  player.configure({ abr:{enabled:true} });
 
   // Read URL params
   const p = new URLSearchParams(window.location.search);
   const url = p.get('url');
-  const keyId = p.get('keyId');    // optional
-  const keyValue = p.get('keyValue');// optional
+  const keyId = p.get('keyId');
+  const keyValue = p.get('keyValue');
   const logoOn = p.get('logoOn')=='1';
   const logo = p.get('logo');
   const logoPos = p.get('logoPos') || 'top-left';
@@ -56,8 +76,8 @@ document.addEventListener('DOMContentLoaded', async()=>{
   const wmOpacity = p.get('wmOpacity') || '70';
 
   async function loadVideo(){
-    try{
-      // Check if DRM info provided
+    try {
+      // DRM
       if(keyId && keyValue){
         player.configure({
           drm:{
@@ -70,15 +90,13 @@ document.addEventListener('DOMContentLoaded', async()=>{
 
       await player.load(decodeURIComponent(url));
       console.log('✅ Video loaded successfully');
-    }catch(err){
-      console.warn('⚠️ Video may not have DRM or failed DRM load. Trying without DRM...', err);
-
-      // Try again without DRM
-      try{
+    } catch(err){
+      console.warn('⚠️ DRM failed or unnecessary, retrying without DRM...', err);
+      try {
         player.configure({drm:null});
         await player.load(decodeURIComponent(url));
         console.log('✅ Video loaded without DRM');
-      }catch(e){
+      } catch(e){
         console.error('❌ Cannot load video', e);
         alert('Video cannot be loaded. Check console for details.');
       }
