@@ -40,10 +40,11 @@ document.addEventListener('DOMContentLoaded', async()=>{
   });
   player.configure({abr:{enabled:true}});
 
+  // Read URL params
   const p = new URLSearchParams(window.location.search);
   const url = p.get('url');
-  const keyId = p.get('keyId');
-  const keyValue = p.get('keyValue');
+  const keyId = p.get('keyId');    // optional
+  const keyValue = p.get('keyValue');// optional
   const logoOn = p.get('logoOn')=='1';
   const logo = p.get('logo');
   const logoPos = p.get('logoPos') || 'top-left';
@@ -54,25 +55,39 @@ document.addEventListener('DOMContentLoaded', async()=>{
   const wmPos = p.get('wmPos') || 'bottom-left';
   const wmOpacity = p.get('wmOpacity') || '70';
 
-  if(url){
+  async function loadVideo(){
     try{
+      // Check if DRM info provided
       if(keyId && keyValue){
         player.configure({
-          drm: {
-            clearKeys: {
+          drm:{
+            clearKeys:{
               [keyId]: keyValue
             }
           }
         });
       }
+
       await player.load(decodeURIComponent(url));
-      console.log('✅ Video loaded');
-    }catch(e){
-      console.error('❌ Error loading', e);
-      alert('Error loading video. Check console.');
+      console.log('✅ Video loaded successfully');
+    }catch(err){
+      console.warn('⚠️ Video may not have DRM or failed DRM load. Trying without DRM...', err);
+
+      // Try again without DRM
+      try{
+        player.configure({drm:null});
+        await player.load(decodeURIComponent(url));
+        console.log('✅ Video loaded without DRM');
+      }catch(e){
+        console.error('❌ Cannot load video', e);
+        alert('Video cannot be loaded. Check console for details.');
+      }
     }
   }
 
+  if(url) loadVideo();
+
+  // Logo overlay
   if(logoOn && logo){
     overlayLogo.src = decodeURIComponent(logo);
     overlayLogo.style.display='block';
@@ -81,6 +96,7 @@ document.addEventListener('DOMContentLoaded', async()=>{
     setPosition(overlayLogo, logoPos);
   }
 
+  // Watermark overlay
   if(wmOn && wm){
     overlayText.textContent = decodeURIComponent(wm);
     overlayText.style.display='block';
