@@ -3,200 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shaka Player Full Feature</title>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css">
+<title>DASH Player Generator</title>
 <style>
-body, html { margin:0; padding:0; background:#000; color:#fff; font-family:Arial,sans-serif;}
-.container { max-width:1200px; margin:20px auto; padding:12px; }
-h1 { font-size:22px; margin-bottom:10px; }
-input, select, button, textarea { padding:6px 8px; border-radius:6px; border:1px solid #333; background:#111; color:#fff; margin-right:6px;}
-button { cursor:pointer; border:none; background:#1a73e8; color:#fff; }
-button.secondary { background:#333; }
-textarea { width:100%; min-height:60px; margin-top:6px; }
-.row { display:flex; flex-wrap:wrap; align-items:center; margin-bottom:6px; }
-
-#player-container { width:100%; aspect-ratio:16/9; position:relative; background:#000; border-radius:8px; overflow:hidden; }
-video.shaka-video { width:100%; height:100%; object-fit:contain; background:#000; }
-.shaka-controls-container { z-index:9999 !important; background:transparent !important; }
-.overlay-logo, .overlay-text { position:absolute; z-index:50; pointer-events:none; display:none; color:#fff; font-weight:600; }
-.overlay-logo { mix-blend-mode:normal; }
-.overlay-text { font-size:18px; opacity:0.75; }
+body { margin:0; font-family: Arial,sans-serif; background:#111; color:#fff; display:flex; justify-content:center; align-items:flex-start; min-height:100vh; padding:20px;}
+.container { max-width:800px; width:100%; }
+h1 { font-size:22px; margin-bottom:10px;}
+label { display:block; margin-top:10px; font-size:14px; color:#ccc;}
+input[type="text"], input[type="url"], select { width:100%; padding:6px; margin-top:4px; border-radius:4px; border:1px solid #333; background:#222; color:#fff;}
+button { margin-top:10px; padding:6px 10px; border:none; border-radius:4px; cursor:pointer; background:#1a73e8; color:#fff;}
+textarea { width:100%; min-height:60px; margin-top:10px; padding:6px; border-radius:4px; border:1px solid #333; background:#222; color:#fff; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>Live DASH Player • Share & Embed</h1>
+  <h1>DASH Player Generator</h1>
+  
+  <label>Stream URL (DASH/MPD)</label>
+  <input id="input-url" type="url" placeholder="https://example.com/stream.mpd">
 
-  <!-- URL -->
-  <div class="row">
-    <input id="input-url" type="url" placeholder="https://example.com/stream.mpd" style="flex:1;">
-    <button id="load-btn">Load</button>
-    <button id="use-sample" class="secondary">Use Sample</button>
-  </div>
+  <label>Logo URL (optional)</label>
+  <input id="logo-url" type="url" placeholder="https://example.com/logo.png">
 
-  <!-- Logo -->
-  <div class="row">
-    <input id="logo-url" type="url" placeholder="Logo URL (optional)">
-    <select id="logo-pos">
-      <option value="top-left">Top-left</option>
-      <option value="top-right">Top-right</option>
-      <option value="bottom-left">Bottom-left</option>
-      <option value="bottom-right">Bottom-right</option>
-      <option value="center">Center</option>
-    </select>
-    <input id="logo-size" type="text" placeholder="Width px" style="width:80px;">
-    <label>Opacity</label>
-    <input id="logo-opacity" type="range" min="0" max="100" value="85">
-    <span id="logo-opacity-val">85%</span>
-    <label>On/Off</label>
-    <input type="checkbox" id="logo-onoff" checked>
-    <button id="apply-logo" class="secondary">Apply</button>
-  </div>
+  <label>Logo Position</label>
+  <select id="logo-pos">
+    <option value="top-left">Top-left</option>
+    <option value="top-right">Top-right</option>
+    <option value="bottom-left">Bottom-left</option>
+    <option value="bottom-right">Bottom-right</option>
+    <option value="center">Center</option>
+  </select>
 
-  <!-- Text Watermark -->
-  <div class="row">
-    <input id="wm-text" type="text" placeholder="Text Watermark">
-    <label>On/Off</label>
-    <input type="checkbox" id="wm-onoff" checked>
-    <button id="apply-wm" class="secondary">Apply</button>
-    <button id="clear-wm" class="secondary">Clear</button>
-  </div>
+  <label>Logo Size (px)</label>
+  <input id="logo-size" type="text" placeholder="120">
 
-  <!-- Share/Embed -->
-  <div class="row">
-    <button id="gen-link">Generate Link</button>
-    <button id="copy-link" class="secondary">Copy Link</button>
-    <button id="gen-embed" class="secondary">Get Embed Code</button>
-  </div>
-  <textarea id="output" placeholder="Share link or embed code will appear here"></textarea>
+  <label>Logo Opacity (%)</label>
+  <input id="logo-opacity" type="text" placeholder="85">
 
-  <!-- Player -->
-  <div id="player-container">
-    <video id="video" autoplay playsinline class="shaka-video"></video>
-    <div class="shaka-controls-container"></div>
-    <img id="overlayLogo" class="overlay-logo">
-    <div id="overlayText" class="overlay-text"></div>
-  </div>
-  <div style="margin-top:8px;">© 2025 Cric Lives TV</div>
+  <label>Watermark Text (optional)</label>
+  <input id="wm-text" type="text" placeholder="Watermark Text">
+
+  <button id="gen-link">Generate Player Link</button>
+  <button id="gen-embed">Generate Embed Code</button>
+
+  <textarea id="output" placeholder="Generated link or iframe code appears here"></textarea>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/shaka-player.ui.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', async()=>{
-const video = document.getElementById('video');
-const container = document.getElementById('player-container');
 const inputUrl = document.getElementById('input-url');
-const loadBtn = document.getElementById('load-btn');
-const useSample = document.getElementById('use-sample');
-const genLink = document.getElementById('gen-link');
-const copyLink = document.getElementById('copy-link');
-const genEmbed = document.getElementById('gen-embed');
-const output = document.getElementById('output');
-
-const logoUrlInp = document.getElementById('logo-url');
+const logoUrl = document.getElementById('logo-url');
 const logoPos = document.getElementById('logo-pos');
 const logoSize = document.getElementById('logo-size');
 const logoOpacity = document.getElementById('logo-opacity');
-const logoOpacityVal = document.getElementById('logo-opacity-val');
-const logoOnOff = document.getElementById('logo-onoff');
-const applyLogo = document.getElementById('apply-logo');
-
 const wmText = document.getElementById('wm-text');
-const wmOnOff = document.getElementById('wm-onoff');
-const applyWm = document.getElementById('apply-wm');
-const clearWm = document.getElementById('clear-wm');
+const output = document.getElementById('output');
 
-const overlayLogo = document.getElementById('overlayLogo');
-const overlayText = document.getElementById('overlayText');
-
-// Shaka Player init
-const player = new shaka.Player(video);
-player.addEventListener('error', e=>console.error('Shaka error', e.detail||e));
-const ui = new shaka.ui.Overlay(player, container, video);
-ui.configure({
-controlPanelElements:['play_pause','mute','volume','spacer','settings','quality','playback_rate','picture_in_picture','fullscreen'],
-settingsMenuElements:['quality','playback_rate']
+document.getElementById('gen-link').addEventListener('click', ()=>{
+    if(!inputUrl.value) return alert('Enter stream URL');
+    const url = new URL('player.html', location.href);
+    url.searchParams.set('url', inputUrl.value);
+    if(logoUrl.value) url.searchParams.set('logo', logoUrl.value);
+    if(logoPos.value) url.searchParams.set('logoPos', logoPos.value);
+    if(logoSize.value) url.searchParams.set('logoSize', logoSize.value);
+    if(logoOpacity.value) url.searchParams.set('logoOpacity', logoOpacity.value);
+    if(wmText.value) url.searchParams.set('wmText', encodeURIComponent(wmText.value));
+    output.value = url.toString();
 });
-player.configure({abr:{enabled:true}});
 
-// Overlay function
-function placeOverlay(){
-  // Logo
-  if(logoOnOff.checked && logoUrlInp.value.trim()){
-    overlayLogo.src = logoUrlInp.value.trim();
-    overlayLogo.style.display='block';
-    overlayLogo.style.opacity = logoOpacity.value/100;
-    overlayLogo.style.width = (logoSize.value||120)+'px';
-    overlayLogo.style.height='auto';
-    overlayLogo.style.top=''; overlayLogo.style.left=''; overlayLogo.style.right=''; overlayLogo.style.bottom=''; overlayLogo.style.transform='';
-    switch(logoPos.value){
-      case 'top-left': overlayLogo.style.top='10px'; overlayLogo.style.left='10px'; break;
-      case 'top-right': overlayLogo.style.top='10px'; overlayLogo.style.right='10px'; break;
-      case 'bottom-left': overlayLogo.style.bottom='10px'; overlayLogo.style.left='10px'; break;
-      case 'bottom-right': overlayLogo.style.bottom='10px'; overlayLogo.style.right='10px'; break;
-      case 'center': overlayLogo.style.top='50%'; overlayLogo.style.left='50%'; overlayLogo.style.transform='translate(-50%,-50%)'; break;
-    }
-  } else { overlayLogo.style.display='none'; }
-
-  // Watermark
-  if(wmOnOff.checked && wmText.value.trim()){
-    overlayText.textContent = wmText.value.trim();
-    overlayText.style.display='block';
-    overlayText.style.top='10px'; overlayText.style.left='10px';
-  } else { overlayText.style.display='none'; }
-}
-
-applyLogo.addEventListener('click', placeOverlay);
-applyWm.addEventListener('click', placeOverlay);
-clearWm.addEventListener('click', ()=>{
-  wmText.value=''; overlayText.style.display='none'; placeOverlay();
-});
-logoOpacity.addEventListener('input', ()=>{ logoOpacityVal.textContent = logoOpacity.value+'%'; placeOverlay(); });
-
-// Load stream
-async function loadStream(url){
-  try{
-    await player.load(url);
-    console.log('Loaded:', url);
-    placeOverlay();
-    output.value='';
-  }catch(e){ console.error(e); alert('Error loading stream.'); }
-}
-
-loadBtn.addEventListener('click', ()=>{ const url=inputUrl.value.trim(); if(!url) return alert('Paste URL'); loadStream(url); });
-useSample.addEventListener('click', ()=>{ const sample='https://v4-kun-v13-cdn-02.live.cdn.cgates.lt/live/dash/560502/web.mpd'; inputUrl.value=sample; loadStream(sample); });
-
-// Share/Embed
-function buildShareUrl(){
-  const base=location.origin+location.pathname;
-  const u=new URL(base);
-  const url=inputUrl.value.trim();
-  if(!url) return '';
-  u.searchParams.set('url',url);
-  if(logoUrlInp.value.trim()) u.searchParams.set('logo',logoUrlInp.value.trim());
-  if(logoPos.value) u.searchParams.set('logoPos',logoPos.value);
-  if(logoSize.value.trim()) u.searchParams.set('logoSize',logoSize.value.trim());
-  if(logoOpacity.value) u.searchParams.set('logoOpacity',logoOpacity.value);
-  if(logoOnOff.checked) u.searchParams.set('logoOn','1'); else u.searchParams.set('logoOn','0');
-  if(wmText.value.trim()) u.searchParams.set('wmText',encodeURIComponent(wmText.value.trim()));
-  if(wmOnOff.checked) u.searchParams.set('wmOn','1'); else u.searchParams.set('wmOn','0');
-  return u.toString();
-}
-
-genLink.addEventListener('click', ()=>{ const link=buildShareUrl(); if(!link) return alert('Load video'); output.value=link; });
-copyLink.addEventListener('click', async()=>{ const txt=output.value.trim(); if(!txt) return alert('Nothing'); try{ await navigator.clipboard.writeText(txt); alert('Copied'); }catch(e){ prompt('Copy manually:', txt); }});
-genEmbed.addEventListener('click', ()=>{ const link=buildShareUrl(); if(!link) return alert('Load video'); output.value=`<iframe src="${link}" width="800" height="450" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`; });
-
-// Load from query params
-const params=new URLSearchParams(location.search);
-if(params.get('url')){ inputUrl.value=params.get('url'); loadStream(params.get('url')); }
-if(params.get('logo')){ logoUrlInp.value=params.get('logo'); if(params.get('logoPos')) logoPos.value=params.get('logoPos'); if(params.get('logoSize')) logoSize.value=params.get('logoSize'); if(params.get('logoOpacity')) logoOpacity.value=params.get('logoOpacity'); if(params.get('logoOn')) logoOnOff.checked=params.get('logoOn')==='1'; }
-if(params.get('wmText')){ wmText.value=decodeURIComponent(params.get('wmText')); }
-if(params.get('wmOn')){ wmOnOff.checked=params.get('wmOn')==='1'; }
-
-placeOverlay();
-
+document.getElementById('gen-embed').addEventListener('click', ()=>{
+    if(!inputUrl.value) return alert('Enter stream URL');
+    const url = new URL('player.html', location.href);
+    url.searchParams.set('url', inputUrl.value);
+    if(logoUrl.value) url.searchParams.set('logo', logoUrl.value);
+    if(logoPos.value) url.searchParams.set('logoPos', logoPos.value);
+    if(logoSize.value) url.searchParams.set('logoSize', logoSize.value);
+    if(logoOpacity.value) url.searchParams.set('logoOpacity', logoOpacity.value);
+    if(wmText.value) url.searchParams.set('wmText', encodeURIComponent(wmText.value));
+    output.value = `<iframe src="${url}" width="800" height="450" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
 });
 </script>
 </body>
