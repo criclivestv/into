@@ -7,21 +7,26 @@
 <style>
 body { font-family: Arial, sans-serif; background:#111; color:#fff; display:flex; justify-content:center; align-items:center; height:100vh; margin:0;}
 .container { width:100%; max-width:500px; padding:20px; background:#1c1c1c; border-radius:8px; }
-input[type="url"], input[type="text"] { width:100%; padding:8px; margin:6px 0; border-radius:4px; border:none; background:#222; color:#fff;}
-select { padding:6px; border-radius:4px; margin:6px 0; background:#222; color:#fff; border:none;}
+input[type="url"], input[type="text"], input[type="number"] { width:100%; padding:8px; margin:6px 0; border-radius:4px; border:none; background:#222; color:#fff;}
+select, input[type="checkbox"] { margin:6px 0; padding:6px; border-radius:4px; background:#222; color:#fff; border:none;}
 button { width:100%; padding:10px; margin-top:10px; border:none; border-radius:4px; background:#1a73e8; color:#fff; cursor:pointer; font-size:16px;}
 small { color:#aaa; }
+.flex-row { display:flex; gap:10px; align-items:center; }
 </style>
 </head>
 <body>
 <div class="container">
   <h2>Shaka Player Generator</h2>
-  <small>Paste DASH / MPD URL</small>
-  <input type="url" id="video-url" placeholder="https://example.com/stream.mpd">
-  
-  <small>Logo URL (optional)</small>
-  <input type="url" id="logo-url" placeholder="https://example.com/logo.png">
 
+  <small>Video URL (DASH/MPD)</small>
+  <input type="url" id="video-url" placeholder="https://example.com/stream.mpd">
+
+  <hr style="border-color:#333">
+
+  <h3>Logo Settings</h3>
+  <div class="flex-row"><input type="checkbox" id="logo-on"> Enable Logo</div>
+  <small>Logo URL</small>
+  <input type="url" id="logo-url" placeholder="https://example.com/logo.png">
   <small>Logo Position</small>
   <select id="logo-pos">
     <option value="top-left">Top Left</option>
@@ -30,12 +35,27 @@ small { color:#aaa; }
     <option value="bottom-right">Bottom Right</option>
     <option value="center">Center</option>
   </select>
-
   <small>Logo Width (px)</small>
-  <input type="text" id="logo-size" placeholder="120">
+  <input type="number" id="logo-size" value="120" min="10">
+  <small>Logo Opacity (%)</small>
+  <input type="number" id="logo-opacity" value="85" min="0" max="100">
 
-  <small>Watermark Text (optional)</small>
-  <input type="text" id="wm-text" placeholder="Watermark text">
+  <hr style="border-color:#333">
+
+  <h3>Text Watermark Settings</h3>
+  <div class="flex-row"><input type="checkbox" id="wm-on"> Enable Text</div>
+  <small>Watermark Text</small>
+  <input type="text" id="wm-text" placeholder="Watermark Text">
+  <small>Text Position</small>
+  <select id="wm-pos">
+    <option value="top-left">Top Left</option>
+    <option value="top-right">Top Right</option>
+    <option value="bottom-left">Bottom Left</option>
+    <option value="bottom-right">Bottom Right</option>
+    <option value="center">Center</option>
+  </select>
+  <small>Text Opacity (%)</small>
+  <input type="number" id="wm-opacity" value="75" min="0" max="100">
 
   <button id="open-player">Open Player</button>
 </div>
@@ -45,17 +65,23 @@ document.getElementById('open-player').addEventListener('click', ()=>{
     const url = encodeURIComponent(document.getElementById('video-url').value.trim());
     if(!url) return alert('Please enter video URL');
 
+    const logoOn = document.getElementById('logo-on').checked ? 1 : 0;
     const logo = encodeURIComponent(document.getElementById('logo-url').value.trim());
     const logoPos = document.getElementById('logo-pos').value;
     const logoSize = document.getElementById('logo-size').value.trim();
+    const logoOpacity = document.getElementById('logo-opacity').value.trim();
+
+    const wmOn = document.getElementById('wm-on').checked ? 1 : 0;
     const wm = encodeURIComponent(document.getElementById('wm-text').value.trim());
+    const wmPos = document.getElementById('wm-pos').value;
+    const wmOpacity = document.getElementById('wm-opacity').value.trim();
 
     let query = `?url=${url}`;
-    if(logo) query += `&logo=${logo}&logoPos=${logoPos}&logoSize=${logoSize}`;
-    if(wm) query += `&wm=${wm}`;
+    query += `&logoOn=${logoOn}&logo=${logo}&logoPos=${logoPos}&logoSize=${logoSize}&logoOpacity=${logoOpacity}`;
+    query += `&wmOn=${wmOn}&wm=${wm}&wmPos=${wmPos}&wmOpacity=${wmOpacity}`;
 
-    window.open('player.html'+query, '_blank');
+    window.open('player.html'+query,'_blank');
 });
 </script>
 </body>
-</html>
+      </html>
