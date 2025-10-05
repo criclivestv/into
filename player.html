@@ -3,38 +3,81 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shaka Player — Full Screen Player</title>
+<title>Fullscreen DASH Player</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css">
 <style>
-body, html {
-  margin:0; padding:0; background:#000; height:100%; width:100%; display:flex; justify-content:center; align-items:center;
-}
-#player-container { width:100%; max-width:100%; aspect-ratio:16/9; position:relative; background:#000; }
-video.shaka-video { width:100%; height:100%; object-fit:contain; background:#000; display:block; }
-.shaka-controls-container { z-index:9999 !important; background:transparent !important; }
-.overlay-logo, .overlay-text { position:absolute; pointer-events:none; z-index:50; color:#fff; font-weight:600; display:none; }
-.overlay-logo { mix-blend-mode:normal; }
-.overlay-text { font-size:18px; opacity:0.75; top:10px; left:10px; }
+html,body {margin:0; padding:0; width:100%; height:100%; background:#000; overflow:hidden;}
+#player-container {width:100%; height:100%; position:relative; background:#000;}
+video.shaka-video {width:100%; height:100%; object-fit:contain; background:#000;}
+.shaka-controls-container {z-index:9999 !important; background:transparent !important;}
+.overlay-logo, .overlay-text {position:absolute; pointer-events:none; display:none; color:#fff; font-weight:600; z-index:50;}
+.overlay-logo {mix-blend-mode:normal;}
+.overlay-text {font-size:18px; opacity:0.75;}
 </style>
 </head>
 <body>
-
 <div id="player-container">
   <video id="video" autoplay playsinline class="shaka-video"></video>
   <div class="shaka-controls-container"></div>
-  <img id="overlayLogo" class="overlay-logo" alt="logo">
+  <img id="overlayLogo" class="overlay-logo">
   <div id="overlayText" class="overlay-text"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/shaka-player.ui.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async()=>{
+const video=document.getElementById('video');
+const container=document.getElementById('player-container');
+const overlayLogo=document.getElementById('overlayLogo');
+const overlayText=document.getElementById('overlayText');
 
-const video = document.getElementById('video');
-const container = document.getElementById('player-container');
-const overlayLogo = document.getElementById('overlayLogo');
-const overlayText = document.getElementById('overlayText');
+const player=new shaka.Player(video);
+player.addEventListener('error',e=>console.error('Shaka error',e.detail||e));
+const ui=new shaka.ui.Overlay(player,container,video);
+ui.configure({controlPanelElements:['play_pause','mute','volume','spacer','settings','quality','playback_rate','picture_in_picture','fullscreen'],
+settingsMenuElements:['quality','playback_rate']});
+player.configure({abr:{enabled:true}});
 
+// Load from query params
+const params=new URLSearchParams(location.search);
+const url=params.get('url');
+const logo=params.get('logo');
+const logoPos=params.get('logoPos')||'top-left';
+const logoSize=params.get('logoSize')||120;
+const logoOpacity=params.get('logoOpacity')||85;
+const logoOn=params.get('logoOn')==='1';
+const wmText=params.get('wmText')?decodeURIComponent(params.get('wmText')):'';
+const wmOn=params.get('wmOn')==='1';
+
+// Load video
+if(url){
+  try{
+    await player.load(url);
+    console.log('Loaded:',url);
+  }catch(e){console.error(e);}
+}
+
+// Overlay function
+function placeOverlay(){
+  if(logoOn && logo){ overlayLogo.src=logo; overlayLogo.style.display='block'; overlayLogo.style.opacity=logoOpacity/100; overlayLogo.style.width=logoSize+'px'; overlayLogo.style.height='auto';
+    overlayLogo.style.top=''; overlayLogo.style.left=''; overlayLogo.style.right=''; overlayLogo.style.bottom=''; overlayLogo.style.transform='';
+    switch(logoPos){
+      case'top-left': overlayLogo.style.top='10px'; overlayLogo.style.left='10px'; break;
+      case'top-right': overlayLogo.style.top='10px'; overlayLogo.style.right='10px'; break;
+      case'bottom-left': overlayLogo.style.bottom='10px'; overlayLogo.style.left='10px'; break;
+      case'bottom-right': overlayLogo.style.bottom='10px'; overlayLogo.style.right='10px'; break;
+      case'center': overlayLogo.style.top='50%'; overlayLogo.style.left='50%'; overlayLogo.style.transform='translate(-50%,-50%)'; break;
+    }
+  } else { overlayLogo.style.display='none'; }
+
+  if(wmOn && wmText){ overlayText.textContent=wmText; overlayText.style.display='block'; overlayText.style.top='10px'; overlayText.style.left='10px'; }
+  else overlayText.style.display='none';
+}
+placeOverlay();
+});
+</script>
+</body>
+</html>
 const params = new URLSearchParams(location.search);
 const url = params.get('url');
 const logoUrl = params.get('logo');
