@@ -3,134 +3,81 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fullscreen DASH Player</title>
+<title>DASH Player</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css">
 <style>
-html,body {margin:0; padding:0; width:100%; height:100%; background:#000; overflow:hidden;}
-#player-container {width:100%; height:100%; position:relative; background:#000;}
-video.shaka-video {width:100%; height:100%; object-fit:contain; background:#000;}
-.shaka-controls-container {z-index:9999 !important; background:transparent !important;}
-.overlay-logo, .overlay-text {position:absolute; pointer-events:none; display:none; color:#fff; font-weight:600; z-index:50;}
-.overlay-logo {mix-blend-mode:normal;}
-.overlay-text {font-size:18px; opacity:0.75;}
+body, html { margin:0; padding:0; background:#000; display:flex; justify-content:center; align-items:center; height:100vh;}
+#player-container { width:90%; max-width:1280px; aspect-ratio:16/9; position:relative; background:#000; border-radius:8px; overflow:hidden;}
+video.shaka-video { width:100%; height:100%; object-fit:contain; background:#000; }
+.shaka-controls-container { z-index:9999 !important; background:transparent !important; }
+.overlay-logo, .overlay-text { position:absolute; z-index:50; pointer-events:none; display:none; color:#fff; font-weight:600; }
+.overlay-logo { mix-blend-mode: normal; }
+.overlay-text { font-size:18px; opacity:0.75; }
 </style>
 </head>
 <body>
 <div id="player-container">
-  <video id="video" autoplay playsinline class="shaka-video"></video>
-  <div class="shaka-controls-container"></div>
-  <img id="overlayLogo" class="overlay-logo">
-  <div id="overlayText" class="overlay-text"></div>
+    <video id="video" autoplay playsinline class="shaka-video"></video>
+    <div class="shaka-controls-container"></div>
+    <img id="overlayLogo" class="overlay-logo" alt="logo"/>
+    <div id="overlayText" class="overlay-text"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/shaka-player.ui.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', async()=>{
-const video=document.getElementById('video');
-const container=document.getElementById('player-container');
-const overlayLogo=document.getElementById('overlayLogo');
-const overlayText=document.getElementById('overlayText');
+document.addEventListener('DOMContentLoaded', async ()=>{
+    const video = document.getElementById('video');
+    const container = document.getElementById('player-container');
+    const overlayLogo = document.getElementById('overlayLogo');
+    const overlayText = document.getElementById('overlayText');
 
-const player=new shaka.Player(video);
-player.addEventListener('error',e=>console.error('Shaka error',e.detail||e));
-const ui=new shaka.ui.Overlay(player,container,video);
-ui.configure({controlPanelElements:['play_pause','mute','volume','spacer','settings','quality','playback_rate','picture_in_picture','fullscreen'],
-settingsMenuElements:['quality','playback_rate']});
-player.configure({abr:{enabled:true}});
+    const params = new URLSearchParams(location.search);
+    const streamUrl = params.get('url');
+    const logoUrl = params.get('logo');
+    const logoPos = params.get('logoPos') || 'top-left';
+    const logoSize = parseInt(params.get('logoSize')) || 120;
+    const logoOpacity = parseInt(params.get('logoOpacity')) || 85;
+    const wmText = params.get('wmText') ? decodeURIComponent(params.get('wmText')) : '';
 
-// Load from query params
-const params=new URLSearchParams(location.search);
-const url=params.get('url');
-const logo=params.get('logo');
-const logoPos=params.get('logoPos')||'top-left';
-const logoSize=params.get('logoSize')||120;
-const logoOpacity=params.get('logoOpacity')||85;
-const logoOn=params.get('logoOn')==='1';
-const wmText=params.get('wmText')?decodeURIComponent(params.get('wmText')):'';
-const wmOn=params.get('wmOn')==='1';
+    const player = new shaka.Player(video);
+    player.addEventListener('error', e=>console.error('Shaka error', e.detail || e));
 
-// Load video
-if(url){
-  try{
-    await player.load(url);
-    console.log('Loaded:',url);
-  }catch(e){console.error(e);}
-}
+    const ui = new shaka.ui.Overlay(player, container, video);
+    ui.configure({ controlPanelElements:['play_pause','mute','volume','spacer','settings','quality','playback_rate','picture_in_picture','fullscreen'], settingsMenuElements:['quality','playback_rate']});
+    player.configure({ abr:{ enabled:true } });
 
-// Overlay function
-function placeOverlay(){
-  if(logoOn && logo){ overlayLogo.src=logo; overlayLogo.style.display='block'; overlayLogo.style.opacity=logoOpacity/100; overlayLogo.style.width=logoSize+'px'; overlayLogo.style.height='auto';
-    overlayLogo.style.top=''; overlayLogo.style.left=''; overlayLogo.style.right=''; overlayLogo.style.bottom=''; overlayLogo.style.transform='';
-    switch(logoPos){
-      case'top-left': overlayLogo.style.top='10px'; overlayLogo.style.left='10px'; break;
-      case'top-right': overlayLogo.style.top='10px'; overlayLogo.style.right='10px'; break;
-      case'bottom-left': overlayLogo.style.bottom='10px'; overlayLogo.style.left='10px'; break;
-      case'bottom-right': overlayLogo.style.bottom='10px'; overlayLogo.style.right='10px'; break;
-      case'center': overlayLogo.style.top='50%'; overlayLogo.style.left='50%'; overlayLogo.style.transform='translate(-50%,-50%)'; break;
+    async function loadStream(url){ 
+        try{ await player.load(url); console.log('Loaded:', url); }
+        catch(e){ console.error('Error loading stream', e); alert('Failed to load stream'); }
     }
-  } else { overlayLogo.style.display='none'; }
 
-  if(wmOn && wmText){ overlayText.textContent=wmText; overlayText.style.display='block'; overlayText.style.top='10px'; overlayText.style.left='10px'; }
-  else overlayText.style.display='none';
-}
-placeOverlay();
+    function placeOverlay(){
+        if(logoUrl){
+            overlayLogo.src=logoUrl;
+            overlayLogo.style.display='block';
+            overlayLogo.style.opacity=logoOpacity/100;
+            overlayLogo.style.width=logoSize+'px';
+            overlayLogo.style.height='auto';
+            overlayLogo.style.top=''; overlayLogo.style.left=''; overlayLogo.style.right=''; overlayLogo.style.bottom=''; overlayLogo.style.transform='';
+            switch(logoPos){
+                case 'top-left': overlayLogo.style.top='10px'; overlayLogo.style.left='10px'; break;
+                case 'top-right': overlayLogo.style.top='10px'; overlayLogo.style.right='10px'; break;
+                case 'bottom-left': overlayLogo.style.bottom='10px'; overlayLogo.style.left='10px'; break;
+                case 'bottom-right': overlayLogo.style.bottom='10px'; overlayLogo.style.right='10px'; break;
+                case 'center': overlayLogo.style.top='50%'; overlayLogo.style.left='50%'; overlayLogo.style.transform='translate(-50%,-50%)'; break;
+            }
+        } else overlayLogo.style.display='none';
+
+        if(wmText){
+            overlayText.textContent=wmText;
+            overlayText.style.display='block';
+            overlayText.style.top='10px'; overlayText.style.left='10px';
+        } else overlayText.style.display='none';
+    }
+
+    if(streamUrl) loadStream(streamUrl);
+    placeOverlay();
 });
-</script>
-</body>
-</html>
-const params = new URLSearchParams(location.search);
-const url = params.get('url');
-const logoUrl = params.get('logo');
-const logoPos = params.get('logoPos')||'top-left';
-const logoSize = params.get('logoSize')||120;
-const logoOpacity = params.get('logoOpacity')||85;
-const logoOn = params.get('logoOn')==='1';
-const wmText = params.get('wmText');
-const wmOn = params.get('wmOn')==='1';
-
-if(!url){ alert('No video URL provided'); return; }
-
-// Initialize Shaka
-const player = new shaka.Player(video);
-player.addEventListener('error', e=>console.error('Shaka error', e.detail||e));
-const ui = new shaka.ui.Overlay(player, container, video);
-ui.configure({
-  controlPanelElements:['play_pause','mute','volume','spacer','settings','quality','playback_rate','picture_in_picture','fullscreen'],
-  settingsMenuElements:['quality','playback_rate']
-});
-player.configure({ abr:{ enabled:true } });
-
-// Load video
-try{
-  await player.load(url);
-  console.log('Loaded:', url);
-}catch(e){ console.error('Error loading stream', e); alert('Error loading video.'); }
-
-// Overlay
-if(logoOn && logoUrl){
-  overlayLogo.src=logoUrl;
-  overlayLogo.style.display='block';
-  overlayLogo.style.opacity=logoOpacity/100;
-  overlayLogo.style.width=logoSize+'px';
-  overlayLogo.style.height='auto';
-  overlayLogo.style.top=''; overlayLogo.style.left=''; overlayLogo.style.right=''; overlayLogo.style.bottom=''; overlayLogo.style.transform='';
-  switch(logoPos){
-    case 'top-left': overlayLogo.style.top='10px'; overlayLogo.style.left='10px'; break;
-    case 'top-right': overlayLogo.style.top='10px'; overlayLogo.style.right='10px'; break;
-    case 'bottom-left': overlayLogo.style.bottom='12px'; overlayLogo.style.left='10px'; break;
-    case 'bottom-right': overlayLogo.style.bottom='12px'; overlayLogo.style.right='12px'; break;
-    case 'center': overlayLogo.style.top='50%'; overlayLogo.style.left='50%'; overlayLogo.style.transform='translate(-50%,-50%)'; break;
-  }
-}
-
-if(wmOn && wmText){
-  overlayText.textContent=decodeURIComponent(wmText);
-  overlayText.style.display='block';
-} else {
-  overlayText.style.display='none';
-}
-
-}); // DOMContentLoaded
 </script>
 </body>
 </html>
