@@ -4,134 +4,58 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shaka Player Generator</title>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css">
-
 <style>
-body, html {
-    margin: 0; padding: 0;
-    font-family: Arial, sans-serif;
-    background: #111; color: #fff;
-}
-.container {
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 14px;
-}
-h1 { font-size: 24px; margin-bottom: 12px; }
-input[type="url"], input[type="text"], select {
-    padding: 6px 10px; border-radius: 6px; border: 1px solid #333;
-    background: #222; color: #fff; width: 300px; margin-right: 8px;
-}
-button {
-    padding: 6px 12px; border-radius: 6px; border: 0;
-    background: #1a73e8; color: #fff; cursor: pointer; margin-right: 6px;
-}
-button.secondary { background: #333; }
-.row { margin: 8px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-textarea { width:100%; min-height:60px; padding:8px; background:#222; border:1px solid #333; color:#fff; border-radius:6px; margin-top:8px; }
-iframe { width:100%; height:360px; border:0; margin-top:12px; border-radius:8px; }
+body { font-family: Arial, sans-serif; background:#111; color:#fff; display:flex; justify-content:center; align-items:center; height:100vh; margin:0;}
+.container { width:100%; max-width:500px; padding:20px; background:#1c1c1c; border-radius:8px; }
+input[type="url"], input[type="text"] { width:100%; padding:8px; margin:6px 0; border-radius:4px; border:none; background:#222; color:#fff;}
+select { padding:6px; border-radius:4px; margin:6px 0; background:#222; color:#fff; border:none;}
+button { width:100%; padding:10px; margin-top:10px; border:none; border-radius:4px; background:#1a73e8; color:#fff; cursor:pointer; font-size:16px;}
+small { color:#aaa; }
 </style>
 </head>
 <body>
-
 <div class="container">
-  <h1>Shaka Player Link & Embed Generator</h1>
+  <h2>Shaka Player Generator</h2>
+  <small>Paste DASH / MPD URL</small>
+  <input type="url" id="video-url" placeholder="https://example.com/stream.mpd">
+  
+  <small>Logo URL (optional)</small>
+  <input type="url" id="logo-url" placeholder="https://example.com/logo.png">
 
-  <div class="row">
-    <input id="input-url" type="url" placeholder="DASH/MPD URL">
-    <button id="use-sample" class="secondary">Use Sample</button>
-  </div>
+  <small>Logo Position</small>
+  <select id="logo-pos">
+    <option value="top-left">Top Left</option>
+    <option value="top-right">Top Right</option>
+    <option value="bottom-left">Bottom Left</option>
+    <option value="bottom-right">Bottom Right</option>
+    <option value="center">Center</option>
+  </select>
 
-  <div class="row">
-    <input id="logo-url" type="url" placeholder="Logo URL (optional)">
-    <select id="logo-pos">
-      <option value="top-left">Top-left</option>
-      <option value="top-right">Top-right</option>
-      <option value="bottom-left">Bottom-left</option>
-      <option value="bottom-right">Bottom-right</option>
-      <option value="center">Center</option>
-    </select>
-    <input id="logo-size" type="text" placeholder="Width px" style="width:80px;">
-    <label>Opacity</label>
-    <input id="logo-opacity" type="range" min="0" max="100" value="85">
-    <span id="logo-opacity-val">85%</span>
-  </div>
+  <small>Logo Width (px)</small>
+  <input type="text" id="logo-size" placeholder="120">
 
-  <div class="row">
-    <input id="wm-text" type="text" placeholder="Watermark text">
-    <label>On/Off</label>
-    <input type="checkbox" id="wm-onoff" checked>
-  </div>
+  <small>Watermark Text (optional)</small>
+  <input type="text" id="wm-text" placeholder="Watermark text">
 
-  <div class="row">
-    <button id="gen-link">Generate Link</button>
-    <button id="copy-link" class="secondary">Copy Link</button>
-    <button id="gen-embed" class="secondary">Get Embed Code</button>
-  </div>
-
-  <textarea id="output" placeholder="Share link or embed code will appear here"></textarea>
-
-  <h2>Preview</h2>
-  <iframe id="preview" src=""></iframe>
-
+  <button id="open-player">Open Player</button>
 </div>
 
 <script>
-const inputUrl = document.getElementById('input-url');
-const useSample = document.getElementById('use-sample');
-const logoUrlInp = document.getElementById('logo-url');
-const logoPos = document.getElementById('logo-pos');
-const logoSize = document.getElementById('logo-size');
-const logoOpacity = document.getElementById('logo-opacity');
-const logoOpacityVal = document.getElementById('logo-opacity-val');
-const wmText = document.getElementById('wm-text');
-const wmOnOff = document.getElementById('wm-onoff');
-const genLink = document.getElementById('gen-link');
-const copyLink = document.getElementById('copy-link');
-const genEmbed = document.getElementById('gen-embed');
-const output = document.getElementById('output');
-const preview = document.getElementById('preview');
+document.getElementById('open-player').addEventListener('click', ()=>{
+    const url = encodeURIComponent(document.getElementById('video-url').value.trim());
+    if(!url) return alert('Please enter video URL');
 
-logoOpacity.addEventListener('input', ()=>{ logoOpacityVal.textContent = logoOpacity.value+'%'; });
+    const logo = encodeURIComponent(document.getElementById('logo-url').value.trim());
+    const logoPos = document.getElementById('logo-pos').value;
+    const logoSize = document.getElementById('logo-size').value.trim();
+    const wm = encodeURIComponent(document.getElementById('wm-text').value.trim());
 
-useSample.addEventListener('click', ()=>{
-  inputUrl.value='https://v4-kun-v13-cdn-02.live.cdn.cgates.lt/live/dash/560502/web.mpd';
-});
+    let query = `?url=${url}`;
+    if(logo) query += `&logo=${logo}&logoPos=${logoPos}&logoSize=${logoSize}`;
+    if(wm) query += `&wm=${wm}`;
 
-function buildShareUrl(){
-  const url = inputUrl.value.trim();
-  if(!url) return '';
-  const u = new URL(location.origin + '/player.html');
-  u.searchParams.set('url', url);
-  if(logoUrlInp.value.trim()) u.searchParams.set('logo', logoUrlInp.value.trim());
-  if(logoPos.value) u.searchParams.set('logoPos', logoPos.value);
-  if(logoSize.value.trim()) u.searchParams.set('logoSize', logoSize.value.trim());
-  if(logoOpacity.value) u.searchParams.set('logoOpacity', logoOpacity.value);
-  if(wmText.value.trim()) u.searchParams.set('wmText', encodeURIComponent(wmText.value.trim()));
-  u.searchParams.set('wmOn', wmOnOff.checked?'1':'0');
-  return u.toString();
-}
-
-genLink.addEventListener('click', ()=>{
-  const link = buildShareUrl();
-  if(!link) return alert('Paste video URL first');
-  output.value = link;
-  preview.src = link;
-});
-
-copyLink.addEventListener('click', async ()=>{
-  if(!output.value) return alert('Nothing to copy');
-  try{ await navigator.clipboard.writeText(output.value); alert('Copied!'); }catch(e){ prompt('Copy manually:', output.value);}
-});
-
-genEmbed.addEventListener('click', ()=>{
-  const link = buildShareUrl();
-  if(!link) return alert('Paste video URL first');
-  output.value = `<iframe src="${link}" width="800" height="450" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
-  preview.src = link;
+    window.open('player.html'+query, '_blank');
 });
 </script>
-
 </body>
 </html>
