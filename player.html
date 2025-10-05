@@ -6,13 +6,12 @@
 <title>Shaka Player</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css">
 <style>
-body, html { margin:0; padding:0; background:#000; height:100%; width:100%; display:flex; justify-content:center; align-items:center;}
-#player-container { width:100%; max-width:1280px; aspect-ratio:16/9; position:relative; background:#000;}
-video.shaka-video { width:100%; height:100%; object-fit:contain; background:#000;}
-.shaka-controls-container { z-index:9999 !important; background:transparent !important;}
-.overlay-logo, .overlay-text { position:absolute; z-index:50; pointer-events:none; display:none; color:#fff; font-weight:600;}
-.overlay-logo { mix-blend-mode:normal;}
-.overlay-text { font-size:18px; opacity:0.75;}
+body, html {margin:0;padding:0;background:#000;height:100%;width:100%;display:flex;justify-content:center;align-items:center;}
+#player-container {width:100%;max-width:1280px;aspect-ratio:16/9;position:relative;background:#000;}
+video.shaka-video {width:100%;height:100%;object-fit:contain;background:#000;}
+.shaka-controls-container {z-index:9999!important;background:transparent!important;}
+.overlay-logo, .overlay-text {position:absolute;z-index:50;pointer-events:none;display:none;color:#fff;font-weight:600;}
+.overlay-text {font-size:18px;}
 </style>
 </head>
 <body>
@@ -31,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async()=>{
   const overlayLogo = document.getElementById('overlayLogo');
   const overlayText = document.getElementById('overlayText');
 
-  // Initialize Shaka Player
+  // Shaka Player init
   const player = new shaka.Player(video);
   player.addEventListener('error', e=>console.error('Shaka error', e.detail||e));
 
@@ -42,13 +41,17 @@ document.addEventListener('DOMContentLoaded', async()=>{
   });
   player.configure({abr:{enabled:true}});
 
-  // Get query params
-  const params = new URLSearchParams(window.location.search);
-  const url = params.get('url');
-  const logo = params.get('logo');
-  const logoPos = params.get('logoPos') || 'top-left';
-  const logoSize = params.get('logoSize') || '120';
-  const wm = params.get('wm');
+  // Query params
+  const p = new URLSearchParams(window.location.search);
+  const url = p.get('url');
+  const logo = p.get('logo');
+  const logoPos = p.get('logoPos') || 'top-left';
+  const logoSize = p.get('logoSize') || '120';
+  const logoOpacity = p.get('logoOpacity') || '80'; // default 80%
+
+  const wm = p.get('wm');
+  const wmPos = p.get('wmPos') || 'bottom-left';
+  const wmOpacity = p.get('wmOpacity') || '70'; // default 70%
 
   if(url){
     try{
@@ -57,27 +60,32 @@ document.addEventListener('DOMContentLoaded', async()=>{
     }catch(e){console.error('❌ Error loading', e);}
   }
 
-  // Overlay functions
+  // Logo overlay
   if(logo){
     overlayLogo.src = decodeURIComponent(logo);
     overlayLogo.style.display='block';
-    overlayLogo.style.width=logoSize+'px';
-    overlayLogo.style.height='auto';
-    overlayLogo.style.top=''; overlayLogo.style.left=''; overlayLogo.style.right=''; overlayLogo.style.bottom=''; overlayLogo.style.transform='';
-    switch(logoPos){
-      case 'top-left': overlayLogo.style.top='10px'; overlayLogo.style.left='10px'; break;
-      case 'top-right': overlayLogo.style.top='10px'; overlayLogo.style.right='10px'; break;
-      case 'bottom-left': overlayLogo.style.bottom='10px'; overlayLogo.style.left='10px'; break;
-      case 'bottom-right': overlayLogo.style.bottom='10px'; overlayLogo.style.right='10px'; break;
-      case 'center': overlayLogo.style.top='50%'; overlayLogo.style.left='50%'; overlayLogo.style.transform='translate(-50%,-50%)'; break;
-    }
+    overlayLogo.style.width = logoSize+'px';
+    overlayLogo.style.opacity = logoOpacity/100;
+    setPosition(overlayLogo, logoPos);
   }
 
+  // Watermark overlay
   if(wm){
     overlayText.textContent = decodeURIComponent(wm);
     overlayText.style.display='block';
-    overlayText.style.top='10px';
-    overlayText.style.left='10px';
+    overlayText.style.opacity = wmOpacity/100;
+    setPosition(overlayText, wmPos);
+  }
+
+  function setPosition(el, pos){
+    el.style.top=''; el.style.left=''; el.style.right=''; el.style.bottom=''; el.style.transform='';
+    switch(pos){
+      case 'top-left': el.style.top='10px'; el.style.left='10px'; break;
+      case 'top-right': el.style.top='10px'; el.style.right='10px'; break;
+      case 'bottom-left': el.style.bottom='10px'; el.style.left='10px'; break;
+      case 'bottom-right': el.style.bottom='10px'; el.style.right='10px'; break;
+      case 'center': el.style.top='50%'; el.style.left='50%'; el.style.transform='translate(-50%,-50%)'; break;
+    }
   }
 });
 </script>
