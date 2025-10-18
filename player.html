@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shaka Player</title>
+<title>Shaka Player Optimized</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css">
 <style>
 body, html {
@@ -26,6 +26,10 @@ video.shaka-video {
   color:#fff; font-weight:600;
 }
 .overlay-text { font-size:18px; }
+/* Hide default Shaka loading spinner */
+.shaka-spinner-container {
+  display: none !important;
+}
 </style>
 </head>
 <body>
@@ -47,18 +51,21 @@ document.addEventListener('DOMContentLoaded', async()=>{
   const player = new shaka.Player(video);
   player.addEventListener('error', e=>console.error('Shaka error', e.detail||e));
 
+  // Shaka UI
   const ui = new shaka.ui.Overlay(player, container, video);
   ui.configure({
     controlPanelElements: [
       'play_pause','mute','volume','spacer',
-      'settings','quality',
-      'picture_in_picture','fullscreen'
+      'settings','quality','picture_in_picture','fullscreen'
     ],
-    settingsMenuElements: [
-      'quality'
-    ]
+    settingsMenuElements: ['quality','playback_rate']
   });
-  player.configure({ abr:{enabled:true} });
+
+  // Low-latency + buffer optimization
+  player.configure({
+    abr: {enabled:true, defaultBandwidthEstimate:5000000, restriction:{minHeight:360,maxHeight:1080}},
+    streaming: {bufferingGoal:10, rebufferingGoal:2, bufferBehind:30, lowLatencyMode:true}
+  });
 
   // Read URL params
   const p = new URLSearchParams(window.location.search);
@@ -75,24 +82,18 @@ document.addEventListener('DOMContentLoaded', async()=>{
   const wmPos = p.get('wmPos') || 'bottom-left';
   const wmOpacity = p.get('wmOpacity') || '70';
 
+  // Load video with DRM if provided
   async function loadVideo(){
-    try {
-      // DRM
+    if(!url) return;
+    try{
       if(keyId && keyValue){
-        player.configure({
-          drm:{
-            clearKeys:{
-              [keyId]: keyValue
-            }
-          }
-        });
+        player.configure({ drm:{ clearKeys:{ [keyId]: keyValue } } });
       }
-
       await player.load(decodeURIComponent(url));
       console.log('✅ Video loaded successfully');
     } catch(err){
       console.warn('⚠️ DRM failed or unnecessary, retrying without DRM...', err);
-      try {
+      try{
         player.configure({drm:null});
         await player.load(decodeURIComponent(url));
         console.log('✅ Video loaded without DRM');
@@ -102,10 +103,9 @@ document.addEventListener('DOMContentLoaded', async()=>{
       }
     }
   }
+  loadVideo();
 
-  if(url) loadVideo();
-
-  // Logo overlay
+  // Show logo overlay
   if(logoOn && logo){
     overlayLogo.src = decodeURIComponent(logo);
     overlayLogo.style.display='block';
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', async()=>{
     setPosition(overlayLogo, logoPos);
   }
 
-  // Watermark overlay
+  // Show watermark text
   if(wmOn && wm){
     overlayText.textContent = decodeURIComponent(wm);
     overlayText.style.display='block';
@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', async()=>{
     setPosition(overlayText, wmPos);
   }
 
+  // Position helper
   function setPosition(el, pos){
     el.style.top=''; el.style.left=''; el.style.right=''; el.style.bottom=''; el.style.transform='';
     switch(pos){
@@ -132,6 +133,29 @@ document.addEventListener('DOMContentLoaded', async()=>{
       case 'center': el.style.top='50%'; el.style.left='50%'; el.style.transform='translate(-50%,-50%)'; break;
     }
   }
+
+  // Hide overlays when buffering finishes
+  player.addEventListener('buffering', e=>{
+    if(!e.detail){
+      overlayLogo.style.opacity='0';
+      overlayText.style.opacity='0';
+      setTimeout(()=>{
+        overlayLogo.style.display='none';
+        overlayText.style.display='none';
+      },300);
+    }
+  });
+
+  // Optional fallback: hide overlays on play start
+  video.addEventListener('play', ()=>{
+    overlayLogo.style.opacity='0';
+    overlayText.style.opacity='0';
+    setTimeout(()=>{
+      overlayLogo.style.display='none';
+      overlayText.style.display='none';
+    },300);
+  });
+
 });
 </script>
 </body>
