@@ -3,139 +3,205 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>M3U8 / DASH Player Generator</title>
+<title>Cric Lives TV - M3U8 / DASH Player Generator</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
 body{
-  background:linear-gradient(135deg,#1f1c2c,#928DAB);
-  min-height:100vh;display:flex;justify-content:center;align-items:center;
-  padding:20px;color:#fff;
+  background:#0b0c10;
+  background:radial-gradient(circle at top left,#00111a,#000);
+  min-height:100vh;
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:100px 20px 80px;
 }
-.container{
-  width:100%;max-width:700px;
-  background:rgba(255,255,255,0.1);backdrop-filter:blur(12px);
-  border-radius:16px;padding:25px 30px;box-shadow:0 8px 25px rgba(0,0,0,0.4);
-}
-h1{text-align:center;margin-bottom:20px;font-weight:600;}
 
-.form-group{margin-bottom:15px;}
-label{display:block;font-size:14px;margin-bottom:5px;font-weight:500;}
-input[type="text"],input[type="number"],select{
-  width:100%;padding:10px 12px;border-radius:8px;
-  border:none;outline:none;background:rgba(255,255,255,0.15);
-  color:#fff;font-size:14px;transition:all 0.3s ease;
+/* top logo + site name */
+.header{
+  position:fixed;
+  top:20px;left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:rgba(0,40,80,0.4);
+  border:1px solid rgba(0,255,255,0.2);
+  border-radius:50px;
+  padding:8px 18px;
+  box-shadow:0 0 20px rgba(0,255,255,0.25);
+  z-index:1000;
+}
+.header img{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  object-fit:contain;
+  background:#000;
+  padding:3px;
+  box-shadow:0 0 15px rgba(0,212,255,0.5);
+}
+.header span{
+  font-weight:600;
+  font-size:18px;
+  color:#00d4ff;
+  text-shadow:0 0 10px #00d4ff,0 0 25px #00d4ff;
+  letter-spacing:1px;
+}
+
+.container{
+  width:100%;max-width:750px;
+  background:rgba(15,15,20,0.9);
+  border:1px solid rgba(0,255,255,0.15);
+  border-radius:20px;
+  box-shadow:0 0 40px rgba(0,255,255,0.1);
+  padding:35px 40px;
+  animation:fadeIn 0.8s ease forwards;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);} }
+
+h1{text-align:center;margin-bottom:25px;color:#00d4ff;text-shadow:0 0 10px #00d4ff;}
+label{display:block;font-size:14px;margin-bottom:5px;font-weight:500;color:#00eaff;}
+input,select{
+  width:100%;
+  padding:10px 12px;
+  border:none;
+  outline:none;
+  border-radius:8px;
+  background:rgba(255,255,255,0.08);
+  color:#fff;
+  font-size:14px;
+  margin-bottom:15px;
+  transition:0.3s;
 }
 input:focus,select:focus{
-  background:rgba(255,255,255,0.25);
-  box-shadow:0 0 6px #00d4ff;
+  background:rgba(255,255,255,0.15);
+  box-shadow:0 0 8px #00d4ff;
 }
-::placeholder{color:#ddd;}
+::placeholder{color:#aaa;}
 
-.switch-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
+.switch-row{display:flex;justify-content:space-between;align-items:center;margin:12px 0;}
 .switch{position:relative;width:50px;height:24px;}
 .switch input{display:none;}
 .slider{
   position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;
-  background:#555;border-radius:24px;transition:.3s;
+  background:#444;border-radius:24px;transition:.3s;
 }
 .slider:before{
-  position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;
-  background:white;border-radius:50%;transition:.3s;
+  content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:.3s;
 }
 input:checked + .slider{background:#00d4ff;}
 input:checked + .slider:before{transform:translateX(26px);}
 
 button{
-  padding:12px 18px;border:none;outline:none;border-radius:8px;
-  margin-top:10px;cursor:pointer;font-size:15px;font-weight:600;transition:0.3s;
+  width:100%;padding:14px;border:none;outline:none;
+  border-radius:8px;cursor:pointer;
+  font-size:16px;font-weight:600;margin-top:12px;
+  transition:0.3s;
 }
-.generate-btn{background:#00d4ff;color:#000;width:100%;}
+.generate-btn{
+  background:#00d4ff;color:#000;
+  box-shadow:0 0 20px rgba(0,212,255,0.4);
+}
 .generate-btn:hover{background:#00aee0;transform:scale(1.03);}
-.reset-btn{background:#ff4b5c;color:#fff;margin-top:12px;width:100%;}
+.reset-btn{background:#ff4b5c;color:#fff;}
 .reset-btn:hover{background:#d43f4d;transform:scale(1.03);}
 
-.preview-box{margin-top:20px;text-align:center;}
-.preview-logo{max-width:150px;margin:10px auto;display:none;border:2px dashed #fff;padding:5px;border-radius:10px;}
-.preview-text{font-size:18px;display:none;}
+.preview-box{text-align:center;margin-top:20px;}
+.preview-logo{
+  max-width:100%;
+  height:auto;
+  display:none;
+  margin:10px auto;
+  border:2px dashed rgba(0,212,255,0.4);
+  padding:10px;
+  border-radius:12px;
+  background:rgba(0,0,0,0.3);
+  box-shadow:0 0 25px rgba(0,212,255,0.2);
+}
+.preview-text{
+  font-size:18px;color:#00d4ff;display:none;
+}
+
+/* telegram button */
+.telegram-btn{
+  position:fixed;bottom:25px;right:25px;
+  background:linear-gradient(135deg,#0088cc,#00d4ff);
+  color:#fff;padding:12px 22px;border-radius:50px;
+  font-weight:600;text-decoration:none;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 0 20px rgba(0,212,255,0.4);
+  transition:0.3s;
+}
+.telegram-btn img{width:22px;height:22px;}
+.telegram-btn:hover{transform:scale(1.08);box-shadow:0 0 25px rgba(0,212,255,0.6);}
+
+/* responsive */
+@media(max-width:600px){
+  .container{padding:25px;}
+  h1{font-size:22px;}
+  .header img{width:36px;height:36px;}
+  .header span{font-size:16px;}
+}
 </style>
 </head>
 <body>
+
+<!-- Header -->
+<div class="header">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg_M-abDuyZTBBzf39jvuo08pwW-YfZlPBL4RS-inlDGfTUP9ge2iIsYNj_8PuN40ADXRf13PSSpF4zNcD8C_C3UKi4tU-nZcPKkzITvfbx82n1ConHNIrH1-DX0q77r37OaMahRT3F-QDrxDEhPjyc3eCvwNX8un_x2MFwIYfIuQrrNL1FxZ_lH9gzkr5w/s1024/1000103323.png" alt="Cric Lives TV Logo">
+  <span>Cric Nexas</span>
+</div>
+
+<!-- Form Section -->
 <div class="container">
   <h1>🎬 M3U8 / DASH Player Generator</h1>
 
-  <div class="form-group">
-    <label>Video URL (.m3u8 / .mpd):</label>
-    <input type="text" id="videoUrl" placeholder="Enter video stream URL">
-  </div>
+  <label>Video URL (.m3u8 / .mpd)</label>
+  <input type="text" id="videoUrl" placeholder="Enter video stream URL">
 
-  <!-- DRM -->
-  <div class="form-group">
-    <label>DRM Key ID:</label>
-    <input type="text" id="keyId" placeholder="Optional Key ID">
-  </div>
-  <div class="form-group">
-    <label>DRM Key Value:</label>
-    <input type="text" id="keyValue" placeholder="Optional Key">
-  </div>
+  <label>DRM Key ID</label>
+  <input type="text" id="keyId" placeholder="Optional Key ID">
 
-  <!-- Logo Controls -->
+  <label>DRM Key Value</label>
+  <input type="text" id="keyValue" placeholder="Optional Key">
+
   <div class="switch-row">
-    <label>Enable Logo</label>
-    <label class="switch">
-      <input type="checkbox" id="logoOn">
-      <span class="slider"></span>
-    </label>
+    <span>Enable Logo</span>
+    <label class="switch"><input type="checkbox" id="logoOn"><span class="slider"></span></label>
   </div>
-  <div class="form-group">
-    <label>Logo URL:</label>
-    <input type="text" id="logoUrl" placeholder="Enter logo image link">
-  </div>
-  <div class="form-group">
-    <label>Logo Position:</label>
-    <select id="logoPos">
-      <option value="top-left">Top Left</option>
-      <option value="top-right">Top Right</option>
-      <option value="bottom-left">Bottom Left</option>
-      <option value="bottom-right">Bottom Right</option>
-      <option value="center">Center</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label>Logo Size (px):</label>
-    <input type="number" id="logoSize" value="100" min="30" max="400">
-  </div>
-  <div class="form-group">
-    <label>Logo Opacity (%):</label>
-    <input type="number" id="logoOpacity" value="85" min="0" max="100">
-  </div>
+  <label>Logo URL</label>
+  <input type="text" id="logoUrl" placeholder="Enter logo link (PNG, JPG, SVG, GIF)">
+  <label>Logo Position</label>
+  <select id="logoPos">
+    <option value="top-left">Top Left</option>
+    <option value="top-right">Top Right</option>
+    <option value="bottom-left">Bottom Left</option>
+    <option value="bottom-right">Bottom Right</option>
+    <option value="center">Center</option>
+  </select>
+  <label>Logo Opacity (%)</label>
+  <input type="number" id="logoOpacity" value="90" min="0" max="100">
 
-  <!-- Watermark Controls -->
   <div class="switch-row">
-    <label>Enable Text Watermark</label>
-    <label class="switch">
-      <input type="checkbox" id="wmOn">
-      <span class="slider"></span>
-    </label>
+    <span>Enable Watermark</span>
+    <label class="switch"><input type="checkbox" id="wmOn"><span class="slider"></span></label>
   </div>
-  <div class="form-group">
-    <label>Watermark Text:</label>
-    <input type="text" id="wmText" placeholder="Enter watermark text">
-  </div>
-  <div class="form-group">
-    <label>Watermark Position:</label>
-    <select id="wmPos">
-      <option value="top-left">Top Left</option>
-      <option value="top-right">Top Right</option>
-      <option value="bottom-left">Bottom Left</option>
-      <option value="bottom-right">Bottom Right</option>
-      <option value="center">Center</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label>Text Opacity (%):</label>
-    <input type="number" id="wmOpacity" value="75" min="0" max="100">
-  </div>
+  <label>Watermark Text</label>
+  <input type="text" id="wmText" placeholder="Enter watermark text">
+  <label>Watermark Position</label>
+  <select id="wmPos">
+    <option value="top-left">Top Left</option>
+    <option value="top-right">Top Right</option>
+    <option value="bottom-left">Bottom Left</option>
+    <option value="bottom-right">Bottom Right</option>
+    <option value="center">Center</option>
+  </select>
+  <label>Text Opacity (%)</label>
+  <input type="number" id="wmOpacity" value="75" min="0" max="100">
 
   <button class="generate-btn" onclick="generatePlayer()">🚀 Generate Player</button>
   <button class="reset-btn" onclick="resetForm()">🔄 Reset</button>
@@ -146,62 +212,59 @@ button{
   </div>
 </div>
 
-<script>
-const videoUrlEl = document.getElementById('videoUrl');
-const keyIdEl = document.getElementById('keyId');
-const keyValueEl = document.getElementById('keyValue');
-const previewLogo = document.getElementById('previewLogo');
-const previewText = document.getElementById('previewText');
-const logoUrlEl = document.getElementById('logoUrl');
-const wmTextEl = document.getElementById('wmText');
+<!-- Telegram Join Button -->
+<a href="https://t.me/criclivestv" target="_blank" class="telegram-btn">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram"> Join Telegram
+</a>
 
-// Live preview
+<script>
+const logoUrlEl=document.getElementById('logoUrl');
+const wmTextEl=document.getElementById('wmText');
+const previewLogo=document.getElementById('previewLogo');
+const previewText=document.getElementById('previewText');
+const videoUrlEl=document.getElementById('videoUrl');
+const keyIdEl=document.getElementById('keyId');
+const keyValueEl=document.getElementById('keyValue');
+
 logoUrlEl.addEventListener('input',()=>{
-  const val = logoUrlEl.value.trim();
-  if(val){ previewLogo.src = val; previewLogo.style.display='block'; }
+  const v=logoUrlEl.value.trim();
+  if(v){previewLogo.src=v;previewLogo.style.display='block';}
   else previewLogo.style.display='none';
 });
 wmTextEl.addEventListener('input',()=>{
-  const val = wmTextEl.value.trim();
-  if(val){ previewText.textContent = val; previewText.style.display='block'; }
+  const v=wmTextEl.value.trim();
+  if(v){previewText.textContent=v;previewText.style.display='block';}
   else previewText.style.display='none';
 });
 
-// Auto-detect DRM if full link includes drmLicense
 videoUrlEl.addEventListener('input',()=>{
-  const link = videoUrlEl.value.trim();
+  const link=videoUrlEl.value.trim();
   if(link.includes('drmLicense=')){
     try{
-      const drmPart = link.split('drmLicense=')[1];
-      const [kid,key] = drmPart.split(':');
-      if(kid && key){
-        keyIdEl.value = kid;
-        keyValueEl.value = key;
-      }
+      const drmPart=link.split('drmLicense=')[1];
+      const [kid,key]=drmPart.split(':');
+      if(kid&&key){keyIdEl.value=kid;keyValueEl.value=key;}
     }catch(e){}
   }
 });
 
 function generatePlayer(){
-  const url = videoUrlEl.value.trim();
-  if(!url){ alert('⚠️ Please enter a video URL'); return; }
-
-  const params = new URLSearchParams({
+  const url=videoUrlEl.value.trim();
+  if(!url){alert('⚠️ Please enter a video URL');return;}
+  const params=new URLSearchParams({
     url,
-    keyId: keyIdEl.value.trim(),
-    keyValue: keyValueEl.value.trim(),
-    logoOn: document.getElementById('logoOn').checked ? 1 : 0,
-    logo: document.getElementById('logoUrl').value.trim(),
-    logoPos: document.getElementById('logoPos').value,
-    logoSize: document.getElementById('logoSize').value,
-    logoOpacity: document.getElementById('logoOpacity').value,
-    wmOn: document.getElementById('wmOn').checked ? 1 : 0,
-    wm: document.getElementById('wmText').value.trim(),
-    wmPos: document.getElementById('wmPos').value,
-    wmOpacity: document.getElementById('wmOpacity').value
+    keyId:keyIdEl.value.trim(),
+    keyValue:keyValueEl.value.trim(),
+    logoOn:document.getElementById('logoOn').checked?1:0,
+    logo:document.getElementById('logoUrl').value.trim(),
+    logoPos:document.getElementById('logoPos').value,
+    logoOpacity:document.getElementById('logoOpacity').value,
+    wmOn:document.getElementById('wmOn').checked?1:0,
+    wm:document.getElementById('wmText').value.trim(),
+    wmPos:document.getElementById('wmPos').value,
+    wmOpacity:document.getElementById('wmOpacity').value
   });
-
-  window.open('player.html?' + params.toString(), '_blank');
+  window.open('player.html?'+params.toString(), '_blank');
 }
 
 function resetForm(){
