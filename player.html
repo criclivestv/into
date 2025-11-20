@@ -3,9 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Player Optimized</title>
+<title>Player Optimized with Autoplay & Overlays</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/controls.min.css">
 <style>
+/* * CSS - Style definitions for the player
+ * Ensures full screen coverage and responsive design 
+ */
 body, html {
   margin:0; padding:0; background:#000;
   height:100%; width:100%;
@@ -19,13 +22,16 @@ video.shaka-video {
   width:100%; height:100%; object-fit:contain; background:#000;
 }
 .shaka-controls-container {
+  /* Ensure controls are on top and background is transparent */
   z-index:9999!important; background:transparent!important;
 }
 .overlay-logo, .overlay-text {
-  position:absolute; z-index:50; pointer-events:none; display:none;
+  /* Base style for overlays */
+  position:absolute; z-index:50; pointer-events:none; 
   color:#fff; font-weight:600;
+  transition: opacity 0.3s ease-out; /* Smooth fade effect */
 }
-.overlay-text { font-size:18px; }
+.overlay-text { font-size:18px; text-shadow: 1px 1px 3px #000; }
 /* Hide default Shaka loading spinner */
 .shaka-spinner-container {
   display: none !important;
@@ -34,13 +40,16 @@ video.shaka-video {
 </head>
 <body>
 <div id="player-container">
-  <video id="video" autoplay playsinline class="shaka-video"></video>
+  <video id="video" autoplay **muted** playsinline class="shaka-video"></video>
+  
   <div class="shaka-controls-container"></div>
+  
   <img id="overlayLogo" class="overlay-logo">
   <div id="overlayText" class="overlay-text"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.6/shaka-player.ui.min.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', async()=>{
   const video = document.getElementById('video');
@@ -51,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async()=>{
   const player = new shaka.Player(video);
   player.addEventListener('error', e=>console.error('Shaka error', e.detail||e));
 
-  // Shaka UI
+  // Shaka UI Initialization
   const ui = new shaka.ui.Overlay(player, container, video);
   ui.configure({
     controlPanelElements: [
@@ -61,7 +70,7 @@ document.addEventListener('DOMContentLoaded', async()=>{
     settingsMenuElements: ['quality','playback_rate']
   });
 
-  // Low-latency + buffer optimization
+  // Low-latency + buffer optimization settings
   player.configure({
     abr: {enabled:true, defaultBandwidthEstimate:5000000, restriction:{minHeight:360,maxHeight:1080}},
     streaming: {bufferingGoal:10, rebufferingGoal:2, bufferBehind:30, lowLatencyMode:true}
@@ -82,7 +91,10 @@ document.addEventListener('DOMContentLoaded', async()=>{
   const wmPos = p.get('wmPos') || 'bottom-left';
   const wmOpacity = p.get('wmOpacity') || '70';
 
-  // Load video with DRM if provided
+  /**
+   * Loads the video with DRM or retries without DRM.
+   * Also handles hiding the initial overlays.
+   */
   async function loadVideo(){
     if(!url) return;
     try{
@@ -91,12 +103,14 @@ document.addEventListener('DOMContentLoaded', async()=>{
       }
       await player.load(decodeURIComponent(url));
       console.log('✅ Video loaded successfully');
+      hideOverlays(); // Hide overlays upon successful load
     } catch(err){
       console.warn('⚠️ DRM failed or unnecessary, retrying without DRM...', err);
       try{
         player.configure({drm:null});
         await player.load(decodeURIComponent(url));
         console.log('✅ Video loaded without DRM');
+        hideOverlays(); // Hide overlays upon successful load
       } catch(e){
         console.error('❌ Cannot load video', e);
         alert('Video cannot be loaded. Check console for details.');
@@ -105,24 +119,28 @@ document.addEventListener('DOMContentLoaded', async()=>{
   }
   loadVideo();
 
-  // Show logo overlay
+  // Show logo overlay (if configured)
   if(logoOn && logo){
     overlayLogo.src = decodeURIComponent(logo);
     overlayLogo.style.display='block';
     overlayLogo.style.width = logoSize+'px';
     overlayLogo.style.opacity = logoOpacity/100;
     setPosition(overlayLogo, logoPos);
+  } else {
+    overlayLogo.style.display='none';
   }
 
-  // Show watermark text
+  // Show watermark text (if configured)
   if(wmOn && wm){
     overlayText.textContent = decodeURIComponent(wm);
     overlayText.style.display='block';
     overlayText.style.opacity = wmOpacity/100;
     setPosition(overlayText, wmPos);
+  } else {
+    overlayText.style.display='none';
   }
 
-  // Position helper
+  // Position helper function
   function setPosition(el, pos){
     el.style.top=''; el.style.left=''; el.style.right=''; el.style.bottom=''; el.style.transform='';
     switch(pos){
@@ -133,29 +151,20 @@ document.addEventListener('DOMContentLoaded', async()=>{
       case 'center': el.style.top='50%'; el.style.left='50%'; el.style.transform='translate(-50%,-50%)'; break;
     }
   }
-
-  // Hide overlays when buffering finishes
-  player.addEventListener('buffering', e=>{
-    if(!e.detail){
-      overlayLogo.style.opacity='0';
-      overlayText.style.opacity='0';
-      setTimeout(()=>{
-        overlayLogo.style.display='none';
-        overlayText.style.display='none';
-      },300);
-    }
-  });
-
-  // Optional fallback: hide overlays on play start
-  video.addEventListener('play', ()=>{
+  
+  // New function to hide overlays smoothly
+  function hideOverlays() {
     overlayLogo.style.opacity='0';
     overlayText.style.opacity='0';
     setTimeout(()=>{
       overlayLogo.style.display='none';
       overlayText.style.display='none';
-    },300);
-  });
+    },300); // Wait for the transition to finish
+  }
 
+  // Hide overlays on play start (Fallback/Ensure clear view)
+  video.addEventListener('play', hideOverlays);
+  
 });
 </script>
 </body>
